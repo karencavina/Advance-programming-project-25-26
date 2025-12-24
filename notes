@@ -1,0 +1,17 @@
+Gene ontology file organization:
+- what is always present:
+  - [Term] :this signals the start of a new term
+  - id
+  - name
+  - namespace: biological_process or molecular_function or cellular_component
+  - def: "definition" [links to scientific papers,]
+- optional tags:
+  - comment
+  - synonym: "name of term" + EXACT/RELATED/NARROW + [ ]
+  - is_a: term_id ! description
+  - is_obsolete: true, otherwise by default false
+  - alt_id
+  - replaced_by
+  - consider
+  - xref
+  - relationship: part of, regulates, ...
