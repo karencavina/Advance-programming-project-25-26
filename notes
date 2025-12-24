@@ -15,3 +15,25 @@ Gene ontology file organization:
   - consider
   - xref
   - relationship: part of, regulates, ...
+  - subset
+
+
+GO Associatiole File (GAF) organization (tab-separated attributes):
+1. Database, ex. UniProtKB
+2. Unique ID of the term from the database referenced in (1)
+3. A name for the term, in the form of object symbol
+4. Relation, ex. contributes_to, NOT|enables, enables...
+5. GO id for the term related to our object
+6. 1+ identifiers for a single reference cited as the source experiment or method for atributing the GO ID to the DB Object ID. 
+  If there are multiple links, they are separated by | and no spaces
+7. Evidence code
+8. With/from (reference to another object)
+9. Identifies the namespace of the GO term: P (biological process), F (molecular function) or C (cellular component) (this is redundant info in theory)
+10. DB object name (human readable)
+11. DB object synonym
+12. DB object type
+13. Taxon (NBCI taxonomy identifier)
+14. Date (YYYYMMDD)
+15. Assigned by: the database that made the annotation
+16. Annotation extension (optional)
+17. Gene product form ID (database:ID)
