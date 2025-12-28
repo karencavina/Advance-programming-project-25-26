@@ -1,0 +1,112 @@
+# import dataframes
+from abc import ABC, abstractmethod
+
+# abstract classes so this can be used to make graphs not about gene ontology specifically
+class Graph(ABC):
+    @abstractmethod
+    def new_node(self, term):
+        pass
+
+    @abstractmethod
+    def new_edge(self, relationship):
+        pass
+
+    @abstractmethod
+    def get_in(self):
+        pass
+
+    @abstractmethod
+    def get_out(self):
+        pass
+
+class Node(ABC):
+    @abstractmethod
+    def get_info(self):
+        pass
+
+class Edge(ABC):
+    @abstractmethod
+    def get_info(self):
+        pass
+
+
+class GONode(Node):
+    def __init__(self, id: str, name: str, namespace: str, defi: str, comment: str = None, is_obsolete: bool = False):
+        self._id = id
+        self._name = name
+        self._defi = defi
+        if namespace not in ('biological_process', 'molecular_function', 'cellular_component'):     # check if spelling is the same as GO file
+            raise ValueError('Invalid namespace')
+        else:
+            self._namespace = namespace
+        self._comment = comment
+        self._is_obsolete = is_obsolete
+        # there might be other attributes related to a term, will add later
+
+    def get_info(self):
+        s = f'Gene Ontology term with id {self._id}:\n\t{self._name} belonging to namespace {self._namespace}\n\t{self._defi}'
+        if self._comment != None:
+            s+=f'\n\t{self._comment}'
+        if self._is_obsolete:
+            s+=f'\n\tThis term is obsolete.'
+        # there might be other optional attributes, add later
+        return s
+    
+    @property
+    def id(self):
+        return self._id
+
+class GOEdge(Edge):
+    def __init__(self, a: GONode, b: GONode, rtype: str, desc: str = None):
+        if not (isinstance(a,GONode) and isinstance(b,GONode)):       
+            raise TypeError('The edge connects two objects which are not both GO nodes.')
+        else:
+            self._start = a
+            self._end = b
+        if rtype not in ('synonym', 'is_a', 'alt_id', 'replaced_by', 'relationship', 'subset'):     # the list is probably longer, will modify
+            raise ValueError('Relationship type not recognised')
+        else:
+            self._rtype = rtype
+        self._desc = desc   # this must be modified based on how data is collected in the dataframe, may need further code
+
+    @property
+    def end(self):
+        return self._end
+
+class OntologyGraph(Graph):
+    def __init__(self):
+        self.__nodes = list()
+        self.__edges = dict()
+    
+    def new_node(self, term):
+        if term not in self.__nodes:
+            self.__nodes.append(term)
+            self.__edges[term] = list()
+    
+    def new_edge(self, term: GONode, relationship: GOEdge):
+        if term not in self.__nodes:
+            raise ValueError('Starting node not found in the graph')
+        else:
+            self.__edges[term].append(relationship)     
+        '''
+        NOTE
+        there is a kind of rendundancy: in the graph itself we use a dict
+        so when analysing an edge from here we already must know the starting node
+        but in the edge object itself the starting node is also saved as attribute
+        makes sense or delete it from the edge object??
+        '''
+    
+    def get_out(self, node: GONode):       # this returns the list of edge objects starting from node, NOT the ids (will see what makes more sense)
+        return self.__edges[node]
+    
+    def get_in(self, node: GONode):     # same as get_out
+        edgesin = list()
+        for n in self.__nodes:
+            if n!=node:
+                for e in self.__edges[n]:
+                    if e.end==node.id:
+                        edgesin.append(e)
+        return edgesin
+    '''
+    this is weird idk if its alright
+    '''
