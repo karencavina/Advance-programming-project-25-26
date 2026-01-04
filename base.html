@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- removes special characters -->
+    <meta charset="UTF-8"> 
+    <title>Gene Ontology Analysis System</title>
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #11ad96;
+        }
+        header{
+            background-color: #004d40;
+            color: rgb(0, 0, 0);
+            padding: 24px 16px;
+            text-align: center;
+        }
+        main { 
+            max-width: 800px;
+            margin: 24px auto;
+            padding: 20px;
+        }
+        .card {
+            background-color: #2994ad;
+            border: 1px solid #026474;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="file"] { 
+            width: 100%; margin-bottom: 12px;
+        }
+
+        button {
+            background-color: #00796b;
+            color: rgb(0, 65, 49);
+            border: none;
+            padding: 10px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004d40;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Gene Ontology Analysis System</h1>
+
+    <!-- Simple navigation -->
+    <div class="nav">
+        <a href="{{ url_for('home') }}"><button>Home</button></a>
+        <a href="{{ url_for('upload') }}"><button>Upload</button></a>
+        <a href="{{ url_for('search') }}"><button>Search</button></a>
+        <a href="{{ url_for('visualize') }}"><button>Visualize</button></a>
+    </div>
+</header>
+
+<main>
+    <!-- THIS is where child templates go -->
+    {% block content %}{% endblock %}
+</main>
+</html>

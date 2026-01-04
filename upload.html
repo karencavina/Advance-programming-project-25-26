@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>Upload Datasets</h2>
+
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <label for="obo">Gene Ontology file (go-basic.obo)</label>
+      <input type="file" id="obo" name="obo_file" required>
+
+      <label for="gaf">Human Gene Annotation file (goa_human.gaf.gz)</label>
+      <input type="file" id="gaf" name="gaf_file" required>
+
+      <button type="submit">Upload & Parse</button>
+      <a href="{{ url_for('home') }}"><button>Go to Home</button></a>
+    </form>
+  </section>
+{% endblock %}
