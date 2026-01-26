@@ -90,6 +90,11 @@ def parse_obo(path: str) -> tuple[pd.DataFrame, pd.DataFrame]: #Take in string, 
             "namespace": current.get("namespace", ""),
             "definition": current.get("definition", ""),
             "is_obsolete": current.get("is_obsolete", False),
+            "alt_ids": current.get("alt_ids", []),
+            "subsets": current.get("subsets", []),
+            "synonyms": current.get("synonyms", []),
+            "consider": current.get("consider", []),
+            "replaced_by": current.get("replaced_by", ""),
         })
 
         for parent_id, rel in parents: #Per relationship found, create new row in edges_row
@@ -152,6 +157,21 @@ def parse_obo(path: str) -> tuple[pd.DataFrame, pd.DataFrame]: #Take in string, 
                 parts = value.split()
                 if len(parts) >= 2:
                     parents.append((parts[1], parts[0])) #Store parent id and relation
+
+            elif key == "alt_id": #For alternative IDs
+                current.setdefault("alt_ids", []).append(value)
+
+            elif key == "subset": #Subset tag, self explanatory
+                current.setdefault("subsets", []).append(value)
+
+            elif key == "synonym": #Synonym tag
+                current.setdefault("synonyms", []).append(value)
+
+            elif key == "consider": #Obsolete terms
+                current.setdefault("consider", []).append(value)
+
+            elif key == "replaced_by": #What to replace obsolete terms with
+                current["replaced_by"] = value
             
     if in_term: #We save any term even if the file ends
         flush()
@@ -197,3 +217,4 @@ def load_all(obo_path: str, #Load everything and validate it
         edges_df=edges_df,
         annotations_df=annotations_df,
     )
+
