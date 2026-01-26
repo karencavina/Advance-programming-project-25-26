@@ -200,7 +200,9 @@ def validate_all(terms_df: pd.DataFrame, #If everything is fine this function is
 
 #The function that ties it all together
 '''This is the function that you guys are going to call'''
-
+#Most of the content of the Data Frames are strings but there are a few columns which are not, for example:
+#"is_obsolete" is a boolean,
+#"alt_ids", "synonyms", "consider", "subsets" are lists
 def load_all(obo_path: str, #Load everything and validate it
              gaf_path: str,
              *,
@@ -217,4 +219,5 @@ def load_all(obo_path: str, #Load everything and validate it
         edges_df=edges_df,
         annotations_df=annotations_df,
     )
+
 
