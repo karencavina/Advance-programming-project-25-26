@@ -1,5 +1,6 @@
-# import dataframes
 from abc import ABC, abstractmethod
+from module1 import *
+import pandas as pd
 
 # abstract classes so this can be used to make graphs not about gene ontology specifically
 class Graph(ABC):
@@ -31,7 +32,7 @@ class Edge(ABC):
 
 
 class GONode(Node):
-    def __init__(self, id: str, name: str, namespace: str, defi: str, comment: str = None, is_obsolete: bool = False):
+    def __init__(self, id: str, name: str, namespace: str, defi: str, comment: str = None, is_obsolete: bool = False, subset: str = None):
         self._id = id
         self._name = name
         self._defi = defi
@@ -41,7 +42,7 @@ class GONode(Node):
             self._namespace = namespace
         self._comment = comment
         self._is_obsolete = is_obsolete
-        # there might be other attributes related to a term, will add later
+        self._subset = subset
 
     def get_info(self):
         s = f'Gene Ontology term with id {self._id}:\n\t{self._name} belonging to namespace {self._namespace}\n\t{self._defi}'
@@ -49,64 +50,84 @@ class GONode(Node):
             s+=f'\n\t{self._comment}'
         if self._is_obsolete:
             s+=f'\n\tThis term is obsolete.'
-        # there might be other optional attributes, add later
         return s
     
     @property
     def id(self):
         return self._id
+    
+    @property
+    def namespace(self):
+        return self._namespace
+
+    
 
 class GOEdge(Edge):
-    def __init__(self, a: GONode, b: GONode, rtype: str, desc: str = None):
-        if not (isinstance(a,GONode) and isinstance(b,GONode)):       
+    def __init__(self, child: GONode, parent: GONode, rtype: str):
+        if not (isinstance(child,GONode) and isinstance(parent,GONode)):       
             raise TypeError('The edge connects two objects which are not both GO nodes.')
         else:
-            self._start = a
-            self._end = b
-        if rtype not in ('synonym', 'is_a', 'alt_id', 'replaced_by', 'relationship', 'subset'):     # the list is probably longer, will modify
-            raise ValueError('Relationship type not recognised')
-        else:
+            self._start = child
+            self._end = parent
             self._rtype = rtype
-        self._desc = desc   # this must be modified based on how data is collected in the dataframe, may need further code
 
     @property
     def end(self):
         return self._end
+    
+    @property
+    def child(self):
+        return self._child
+    
+    @property
+    def parent(self):
+        return self._parent
+    
+    @property
+    def rtype(self):
+        return self._rtype
+    
+
+
 
 class OntologyGraph(Graph):
-    def __init__(self):
+    def __init__(self, annotations_df: pd.DataFrame):
         self.__nodes = list()
         self.__edges = dict()
+        self.__annotations = annotations_df
     
     def new_node(self, term):
         if term not in self.__nodes:
             self.__nodes.append(term)
             self.__edges[term] = list()
     
-    def new_edge(self, term: GONode, relationship: GOEdge):
-        if term not in self.__nodes:
-            raise ValueError('Starting node not found in the graph')
-        else:
-            self.__edges[term].append(relationship)     
-        '''
-        NOTE
-        there is a kind of rendundancy: in the graph itself we use a dict
-        so when analysing an edge from here we already must know the starting node
-        but in the edge object itself the starting node is also saved as attribute
-        makes sense or delete it from the edge object??
-        '''
+    def new_edge(self, relationship: GOEdge):
+        term = relationship.child
+        self.__edges[term].append(relationship)     
     
     def get_out(self, node: GONode):       # this returns the list of edge objects starting from node, NOT the ids (will see what makes more sense)
-        return self.__edges[node]
+        return self.__edges[node.id]
     
     def get_in(self, node: GONode):     # same as get_out
         edgesin = list()
         for n in self.__nodes:
             if n!=node:
-                for e in self.__edges[n]:
+                for e in self.__edges[n.id]:
                     if e.end==node.id:
                         edgesin.append(e)
         return edgesin
-    '''
-    this is weird idk if its alright
-    '''
+
+    def get_nodes(self):
+        return self.__nodes.copy()
+    
+
+    
+def create_graph(dataframes: DataBundle) -> OntologyGraph:        # the function to call to create the graph
+    graph = OntologyGraph(dataframes.annotations_df)
+    for go in dataframes.terms_df:
+        node = GONode(go["id"], go["name"], go["namespace"], go["def"], go["comment"], go["is_obsolete"], go["subset"])
+        graph.new_node(node)
+    for edge in dataframes.edges_df:
+        rel = GOEdge(edge["child"], edge["parent"], edge["relation"])
+        graph.new_edge(rel)
+    return graph
