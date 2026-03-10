@@ -120,13 +120,17 @@ class OntologyGraph(Graph):
     
 def create_graph(dataframes: DataBundle) -> OntologyGraph:        # the function to call to create the graph
     graph = OntologyGraph(dataframes.annotations_df)
-    for go in dataframes.terms_df:
-        node = GONode(go["go_id"], go["name"], go["namespace"], go["definition"], go["comment"], go["is_obsolete"], go["subsets"])
+    for go in dataframes.terms_df.iterrows():
+        node = GONode(go["go_id"], go["name"], go["namespace"], go["definition"], '' '''go["comment"]''', go["is_obsolete"], go["subsets"])  # the comment attribute is commented bc luca didn't add it yet
         graph.new_node(node)
-    for edge in dataframes.edges_df:
-        rel = GOEdge(edge["child"], edge["parent"], edge["relation"])
+    '''   
+    for edge in dataframes.edges_df.iterrows():
+        rel = GOEdge(edge["child_id"], edge["parent_id"], edge["relation"])
         graph.new_edge(rel)
+    '''
+    # the problem here: I need the whole node object to do this but I only get the IDs
     return graph
+
 
 
 
