@@ -67,13 +67,9 @@ class GOEdge(Edge):
         if not (isinstance(child,GONode) and isinstance(parent,GONode)):       
             raise TypeError('The edge connects two objects which are not both GO nodes.')
         else:
-            self._start = child
-            self._end = parent
+            self._child = child
+            self._parent = parent
             self._rtype = rtype
-
-    @property
-    def end(self):
-        return self._end
     
     @property
     def child(self):
@@ -125,9 +121,10 @@ class OntologyGraph(Graph):
 def create_graph(dataframes: DataBundle) -> OntologyGraph:        # the function to call to create the graph
     graph = OntologyGraph(dataframes.annotations_df)
     for go in dataframes.terms_df:
-        node = GONode(go["id"], go["name"], go["namespace"], go["def"], go["comment"], go["is_obsolete"], go["subset"])
+        node = GONode(go["go_id"], go["name"], go["namespace"], go["def"], go["comment"], go["is_obsolete"], go["subset"])
         graph.new_node(node)
     for edge in dataframes.edges_df:
         rel = GOEdge(edge["child"], edge["parent"], edge["relation"])
         graph.new_edge(rel)
     return graph
+
