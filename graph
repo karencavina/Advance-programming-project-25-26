@@ -121,11 +121,12 @@ class OntologyGraph(Graph):
 def create_graph(dataframes: DataBundle) -> OntologyGraph:        # the function to call to create the graph
     graph = OntologyGraph(dataframes.annotations_df)
     for go in dataframes.terms_df:
-        node = GONode(go["go_id"], go["name"], go["namespace"], go["definition"], go["comment"], go["is_obsolete"], go["subset"])
+        node = GONode(go["go_id"], go["name"], go["namespace"], go["definition"], go["comment"], go["is_obsolete"], go["subsets"])
         graph.new_node(node)
     for edge in dataframes.edges_df:
         rel = GOEdge(edge["child"], edge["parent"], edge["relation"])
         graph.new_edge(rel)
     return graph
+
 
 
