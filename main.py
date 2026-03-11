@@ -3,8 +3,8 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 import os
 import module1
-import module3
-from graph import create_graph
+#import module3
+from graph import *
 
 STATE = {
     "loaded": False,
@@ -17,6 +17,7 @@ STATE = {
 # flask set up 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"  # Needed for flash messages
+
 # paths / folders 
 app.config['UPLOAD_FOLDER'] = 'uploads/'
 app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 40 MB limit
@@ -44,6 +45,17 @@ def handle_file_size_error(e):
 @app.route('/')
 def home():
     return render_template('home.html', state=STATE)
+
+
+@app.route('/visualize')
+def visualize():
+    # Handle visualization logic here
+    return render_template('visualize.html',state=STATE)
+
+@app.route('/search')
+def search():    
+    # Handle search logic here
+    return render_template('search.html', state=STATE)
 
 
 @app.route('/upload', methods=['GET','POST'])
@@ -85,9 +97,9 @@ def upload():
         app.logger.exception("Error while processing uploaded files")
         flash(f"An error occurred while processing the files: {str(e)}", "error")
         return redirect(url_for("upload"))
-         
+    
 
-
+'''
 @app.route('/search')
 def search():
     query = request.args.get('query', '')
@@ -98,12 +110,15 @@ def search():
 @app.route('/visualize')
 def visualize():
     return render_template('visualize.html')
-
+'''
 
 if __name__== '__main__': 
     app.run(debug=True)
 
 
+
+
     
+
 
 
