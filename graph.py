@@ -142,9 +142,9 @@ class OntologyGraph(Graph):
         try:    
             children = list()
             for n in self.get_nodes_ids():
-                for edge in self.__edges[n]:
-                    if edge.parent.go_id == go_id:
-                        children.append(edge)
+                for edges in self.__edges[n]:
+                    if edges.parent.go_id == go_id:
+                        children.append(edges)
             
             if edge:# if edge is True, we just return the GOEdge
                 return children
