@@ -123,7 +123,7 @@ class Analysis():
                     eq += 2
                 if w == n2.go_id:
                     eq += 4 # we count as "more impactfull" if their own ids are in the list
-            return eq/(len(p1) + len(p2))
+            return eq(len(p1) + len(p2))
 
         if n1.go_id == n2.go_id or n1.replaced_by == n2.go_id or n2.replaced_by == n1.go_id: # in theese three cases the nodes are either the same or one replaces the other se we just return 1
             return 1
@@ -152,6 +152,7 @@ class Analysis():
         - number of unique considered terms ["considered_amount"]
         - relative percentages of the three namespaces ["namespaces_percentage"]
         - top 10 nodes with most synonyms ["top_synonym_nodes"]
+        - top 10 nodes with most children ["top_children_nodes"] 
         '''
         ret = dict()
         # self.get_Graph.get_GONodes() and it's length are needed often theese variables allow to save resources
@@ -192,7 +193,7 @@ class Analysis():
 
         # tuple of percentages of distribution of the three namespaces
         # the order is biological process, molecular function, cellular component
-        bio,mol,cel = 0
+        bio,mol,cel = 0,0,0
         for n in nodes:
             if n.namespace == 'biological_process':
                 bio += 1
@@ -204,7 +205,6 @@ class Analysis():
         mol = (mol/n_nodes) * 100
         cel = (cel/n_nodes) * 100
         ret["namespaces_percentage"] = (bio,mol,cel)
-
 
         # average number of parents per node
         avg_parents = sum(len(self.get_Graph.get_parents(n,False)) for n in nodes)
@@ -220,13 +220,28 @@ class Analysis():
         top_synonym_nodes = dict()
         sorted_nodes = sorted(nodes, key = lambda n: len(n.synonyms), reverse=True)
         for i in range(0,10):
-            top_synonym_nodes[f"{sorted_nodes[i].go_id}"] = len(sorted_nodes[i].synonyms)
+            top_synonym_nodes[sorted_nodes[i].go_id] = len(sorted_nodes[i].synonyms)
         ret["top_synonym_nodes"] = top_synonym_nodes
 
+
+        # dict of the 10 nodes with most children organized the same way as top_synony_nodes
+        top_children_nodes = dict()
+        sorted_nodes = sorted(nodes, key = lambda n: len(self.get_Graph.get_children(n,False)), reverse=True)
+        for i in range(0,10):
+            top_children_nodes[sorted_nodes[i].go_id] = len(self.get_Graph.get_children(sorted_nodes[i],False))
+        ret["top_children_nodes"] = top_children_nodes
+
+        # dict of the 10 nodes with most parents
+        top_parents_nodes = dict()
+        sorted_nodes = sorted(nodes, key = lambda n: len(self.get_Graph.get_parents(n,False)), reverse=True)
+        for i in range(0,10):
+            top_parents_nodes[sorted_nodes[i].go_id] = len(self.get_Graph.get_parents(sorted_nodes[i],False))
+        ret["top_parents_nodes"] = top_parents_nodes
+
+        
         '''
           do the same thing for: 
-          - top children
-          - top parents
           - top alt ids
+          - top edges
         '''
         return ret
