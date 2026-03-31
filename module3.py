@@ -147,8 +147,15 @@ class Analysis():
     def get_Statistics(self) -> dict:
         '''
         returns a dictionary with various statistics about the graph:
-        - average number of edges per node
-        - average number of synonyms
+        - average number of synonyms ["avg_synonyms"]
+        - average number of edges per node ["avg_edges"]
+        - average number of alternative ids ["avg_alt_ids"]
+        - average number of parents per node ["avg_parents"]
+        - average number of children per node ["avg_children"] 
+        - number of obsolete terms ["obsolete_amount"]
+        - number of unique considered terms ["considered_amount"]
+        - relative percentages of the three namespaces ["namespaces_percentage"]
+        
         '''
         ret = dict()
 
