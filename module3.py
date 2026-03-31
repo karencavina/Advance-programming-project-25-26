@@ -13,7 +13,7 @@ class Analysis():
 
     #groups nodes by namespace type
     def group_By(self, argument:str) -> list:
-        return [node for node in self.__graph.get_GONodes() if node.namespace() == argument]
+        return [node for node in self.__graph.get_GONodes() if node.namespace == argument]
 
     #returns the path between nodes as list of nodes
     #search is Depth first and returns shortest path
@@ -70,7 +70,7 @@ class Analysis():
         n1N2Prop = 18 # number of n1+n2 properties starts from the max and reduces if any arent present
         overlap = 0
 
-        def propertyCompareStr(self, p1:str, p2:str) -> float:
+        def propertyCompareStr(p1:str, p2:str) -> float:
             '''
             given the property of the two nodes compares them by increasing eq by 1 for every word contained in both
             and returns eq over the length of the longest in term of words of the two properties.
@@ -82,19 +82,15 @@ class Analysis():
             eq = 0
             p1 = p1.split(" ")
             p2 = p2.split(" ")
+            p1 = [w for w in p1 if len(w) > 3]
+            p2 = [w for w in p2 if len(w) > 3]
 
-            for w in p1:
-                if len(w) <= 3:
-                    p1.remove(w)
-                    p2.remove(w)
-                elif w in p2:
-                    eq += 1
             if len(p1) > len(p2):
                 return eq/len(p1)
             else:
                 return eq/len(p2)
 
-        def propertyCompareList(self, p1:list, p2:list):
+        def propertyCompareList(p1:list, p2:list):
             '''
             same propertyCompareStr but works for properties that are stored as lists
             '''
@@ -111,7 +107,7 @@ class Analysis():
             else:
                 return eq/len(p2)
 
-        def propertyCompareId(self, p1:list,p2:list):
+        def propertyCompareId(p1:list,p2:list):
             ''' 
             some properties are saved as lists of ids in particular synonyms and consider 
             this function compares them taking into account the possibility of one node's Id being present in the other
@@ -127,7 +123,7 @@ class Analysis():
                     eq += 2
                 if w == n2.go_id:
                     eq += 4 # we count as "more impactfull" if their own ids are in the list
-            return eq(len(p1) + len(p2))
+            return eq/(len(p1) + len(p2))
 
         if n1.go_id == n2.go_id or n1.replaced_by == n2.go_id or n2.replaced_by == n1.go_id: # in theese three cases the nodes are either the same or one replaces the other se we just return 1
             return 1
@@ -136,7 +132,7 @@ class Analysis():
                 overlap += 1
 
             overlap += propertyCompareStr(n1.name, n2.name)
-            overlap += propertyCompareStr(n1.defi,n2.dedi)
+            overlap += propertyCompareStr(n1.defi,n2.defi)
             overlap += propertyCompareList(n1.subsets,n2.subsets)
             overlap += propertyCompareList(n1.alt_ids,n2.alt_ids)
             overlap += propertyCompareId(n1.synonyms,n2.synonyms)
@@ -155,81 +151,82 @@ class Analysis():
         - number of obsolete terms ["obsolete_amount"]
         - number of unique considered terms ["considered_amount"]
         - relative percentages of the three namespaces ["namespaces_percentage"]
-        
+        - top 10 nodes with most synonyms ["top_synonym_nodes"]
         '''
         ret = dict()
+        # self.get_Graph.get_GONodes() and it's length are needed often theese variables allow to save resources
+        nodes = self.get_Graph.get_GONodes()
+        n_nodes = len(nodes)
 
         #average number of synonyms per node
-        avg_synonyms = 0
-        for n in self.get_Graph.get_GONodes():
-            avg_synonyms += len(n.synonyms)
-        ret["avg_synonyms"] = avg_synonyms/len(self.get_Graph.get_GONodes())
+        avg_synonyms =sum(len(n.synonyms) for n in nodes)
+        ret["avg_synonyms"] = avg_synonyms/n_nodes 
         
 
         # average number of edges per node
-        avg_edge = 0
-        for n in self.get_Graph.get_GONodes():
-            avg_edge += len(self.get_Graph.get_children(n))
-            avg_edge += len(self.get_Graph.get_parents(n))
-        ret["avg_edges"] = avg_edge/len(self.get_Graph.get_GONodes)
+        avg_edge = sum(len(self.get_Graph.get_children(n)) for n in nodes)
+        avg_edge += sum(len(self.get_Graph.get_parents(n)) for n in nodes)
+        ret["avg_edges"] = avg_edge/n_nodes 
 
 
         #average number of alternative ids per node
-        avg_alt_ids = 0
-        for n in self.get_Graph.get_GONodes():
-            ret += len(n.alt_ids())
-        ret["avg_alt_ids"] = avg_alt_ids/len(self.get_Graph.get_GONodes())
+        avg_alt_ids = sum(len(n.alt_ids) for n in nodes)
+        ret["avg_alt_ids"] = avg_alt_ids/n_nodes 
         
 
         #number of obsolete nodes
         obsolete_amount = 0
-        for n in self.get_Graph.get_GONodes():
-            if n.is_obsolete():
+        for n in nodes:
+            if n.is_obsolete:
                 obsolete_amount += 1
         ret["obsolete_amount"] = obsolete_amount
         
 
         # number of nodes considered by other nodes (if a node is considered multiple times it counts only once)
         considered_amount = set()
-        for n in self.get_Graph.get_GONodes():
-            for m in self.get_Graph.get_GONodes():
-                if n.go_id() in m.consider():
-                    considered_amount.add(n.go_id())
-                    continue
+        for n in nodes:
+            for m in n.consider:
+                considered_amount.add(m)
         ret["considered_amount"] = len(considered_amount)
 
 
         # tuple of percentages of distribution of the three namespaces
         # the order is biological process, molecular function, cellular component
-        bio = 0
-        mol = 0
-        cel = 0
-        for n in self.get_Graph.get_GONodes():
-            if n.namespace() == 'biological_process':
+        bio,mol,cel = 0
+        for n in nodes:
+            if n.namespace == 'biological_process':
                 bio += 1
-            elif n.namespace() == 'molecular_function':
+            elif n.namespace == 'molecular_function':
                 mol += 1
-            elif n.namespace() == 'cellular_component':
+            elif n.namespace == 'cellular_component':
                 cel += 1
-        total = bio + mol + cel
-        bio = (bio/total) * 100
-        mol = (mol/total) * 100
-        cel = (cel/total) * 100
+        bio = (bio/n_nodes) * 100
+        mol = (mol/n_nodes) * 100
+        cel = (cel/n_nodes) * 100
         ret["namespaces_percentage"] = (bio,mol,cel)
 
 
         # average number of parents per node
-        avg_parents = 0
-        for n in self.get_Graph.get_GONodes():
-            avg_parents += len(self.get_Graph.get_parents(n,False))
-        ret["avg_parents"] = avg_parents/len(self.get_Graph.get_GONodes())
+        avg_parents = sum(len(self.get_Graph.get_parents(n,False)) for n in nodes)
+        ret["avg_parents"] = avg_parents/n_nodes 
 
 
         # average number of children per node
-        avg_children = 0
-        for n in self.get_Graph.get_GONodes():
-            avg_children += len(self.get_Graph.get_children(n,False))
-        ret["avg_children"] = avg_children/len(self.get_Graph.get_GONodes)
+        avg_children = sum(len(self.get_Graph.get_children(n,False)) for n in nodes)
+        ret["avg_children"] = avg_children/n_nodes 
         
 
+        # dict of the 10 nodes with the most synonyms [node id]: number of synonyms
+        top_synonym_nodes = dict()
+        sorted_nodes = sorted(nodes, key = lambda n: len(n.synonyms), reverse=True)
+        for i in range(0,10):
+            top_synonym_nodes[f"{sorted_nodes[i].go_id}"] = len(sorted_nodes[i].synonyms)
+        ret["top_synonym_nodes"] = top_synonym_nodes
+
+        '''
+          do the same thing for: 
+          - top children
+          - top parents
+          - top alt ids
+        '''
         return ret
