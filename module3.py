@@ -12,12 +12,12 @@ class Analysis():
     
 
     #groups nodes by namespace type
-    def group_By(self, argument:str):
-        return [node for node in self.__graph.get_nodes() if node.namespace == argument]
+    def group_By(self, argument:str) -> list:
+        return [node for node in self.__graph.get_GONodes() if node.namespace() == argument]
 
     #returns the path between nodes as list of nodes
     #search is Depth first and returns shortest path
-    def path_Try(self, n1: GONode, n2: GONode, path: list = None, shortest: list = None):
+    def path_Try(self, n1: GONode, n2: GONode, path: list = None, shortest: list = None) -> list:
         if path == None:
             path = []
         path = path + [n1]
@@ -36,7 +36,7 @@ class Analysis():
                     shortest = newPath
         return shortest
 
-    def path_Finder(self, n1: GONode, n2: GONode):
+    def path_Finder(self, n1: GONode, n2: GONode) -> list:
         a = self.path_Try(n1,n2)
         b = self.path_Try(n2,n1)
         if a == None:
@@ -48,8 +48,8 @@ class Analysis():
         else:
             return b
 
-    # returns a list of all the nighboursof a given node 
-    def get_Neighbours(self, n:GONode):
+    # returns a list of all the nighbours of a given node 
+    def get_Neighbours(self, n:GONode) -> list:
         out = []
         for e in self.__graph.get_parents(n,False):
             out.append(e)
@@ -59,7 +59,7 @@ class Analysis():
 
 
 
-    def get_similarity(self, n1: GONode, n2:GONode) -> float:
+    def get_Similarity(self, n1: GONode, n2:GONode) -> float:
         '''
         returns a percentage of the similarity of two GOnodes using the Dice-Sørensen coefficient
         0 means two nodes are completely different, 1 means they are the same node
@@ -144,4 +144,85 @@ class Analysis():
 
             return (overlap/n1N2Prop)
         
-        #to do: statistics (returns some useful numbers)
+    def get_Statistics(self) -> dict:
+        '''
+        returns a dictionary with various statistics about the graph:
+        - average number of edges per node
+        - average number of synonyms
+        '''
+        ret = dict()
+
+        #average number of synonyms per node
+        avg_synonyms = 0
+        for n in self.get_Graph.get_GONodes():
+            avg_synonyms += len(n.synonyms)
+        ret["avg_synonyms"] = avg_synonyms/len(self.get_Graph.get_GONodes())
+        
+
+        # average number of edges per node
+        avg_edge = 0
+        for n in self.get_Graph.get_GONodes():
+            avg_edge += len(self.get_Graph.get_children(n))
+            avg_edge += len(self.get_Graph.get_parents(n))
+        ret["avg_edges"] = avg_edge/len(self.get_Graph.get_GONodes)
+
+
+        #average number of alternative ids per node
+        avg_alt_ids = 0
+        for n in self.get_Graph.get_GONodes():
+            ret += len(n.alt_ids())
+        ret["avg_alt_ids"] = avg_alt_ids/len(self.get_Graph.get_GONodes())
+        
+
+        #number of obsolete nodes
+        obsolete_amount = 0
+        for n in self.get_Graph.get_GONodes():
+            if n.is_obsolete():
+                obsolete_amount += 1
+        ret["obsolete_amount"] = obsolete_amount
+        
+
+        # number of nodes considered by other nodes (if a node is considered multiple times it counts only once)
+        considered_amount = set()
+        for n in self.get_Graph.get_GONodes():
+            for m in self.get_Graph.get_GONodes():
+                if n.go_id() in m.consider():
+                    considered_amount.add(n.go_id())
+                    continue
+        ret["considered_amount"] = len(considered_amount)
+
+
+        # tuple of percentages of distribution of the three namespaces
+        # the order is biological process, molecular function, cellular component
+        bio = 0
+        mol = 0
+        cel = 0
+        for n in self.get_Graph.get_GONodes():
+            if n.namespace() == 'biological_process':
+                bio += 1
+            elif n.namespace() == 'molecular_function':
+                mol += 1
+            elif n.namespace() == 'cellular_component':
+                cel += 1
+        total = bio + mol + cel
+        bio = (bio/total) * 100
+        mol = (mol/total) * 100
+        cel = (cel/total) * 100
+        ret["namespaces_percentage"] = (bio,mol,cel)
+
+
+        # average number of parents per node
+        avg_parents = 0
+        for n in self.get_Graph.get_GONodes():
+            avg_parents += len(self.get_Graph.get_parents(n,False))
+        ret["avg_parents"] = avg_parents/len(self.get_Graph.get_GONodes())
+
+
+        # average number of children per node
+        avg_children = 0
+        for n in self.get_Graph.get_GONodes():
+            avg_children += len(self.get_Graph.get_children(n,False))
+        ret["avg_children"] = avg_children/len(self.get_Graph.get_GONodes)
+        
+
+        return ret
