@@ -149,99 +149,83 @@ class Analysis():
         - average number of parents per node ["avg_parents"]
         - average number of children per node ["avg_children"] 
         - number of obsolete terms ["obsolete_amount"]
-        - number of unique considered terms ["considered_amount"]
+        - number of unique terms that are "considered" ["considered_amount"]
         - relative percentages of the three namespaces ["namespaces_percentage"]
         - top 10 nodes with most synonyms ["top_synonym_nodes"]
         - top 10 nodes with most children ["top_children_nodes"] 
+        - top 10 nodes with most alternative ids ["top_alt_ids"]
         '''
+        
         ret = dict()
-        # self.get_Graph.get_GONodes() and it's length are needed often theese variables allow to save resources
+
+        # the list of nodes and the number of nodes are used multiple times so it's more efficient to save the values
         nodes = self.get_Graph.get_GONodes()
-        n_nodes = len(nodes)
+        n_nodes = len(self.get_Graph.get_GONodes())
 
-        #average number of synonyms per node
-        avg_synonyms =sum(len(n.synonyms) for n in nodes)
-        ret["avg_synonyms"] = avg_synonyms/n_nodes 
-        
-
-        # average number of edges per node
-        avg_edge = sum(len(self.get_Graph.get_children(n)) for n in nodes)
-        avg_edge += sum(len(self.get_Graph.get_parents(n)) for n in nodes)
-        ret["avg_edges"] = avg_edge/n_nodes 
-
-
-        #average number of alternative ids per node
-        avg_alt_ids = sum(len(n.alt_ids) for n in nodes)
-        ret["avg_alt_ids"] = avg_alt_ids/n_nodes 
-        
-
-        #number of obsolete nodes
+        # the variables that will go into the dictionary:
+        avg_synonyms = 0
+        edge_n = 0 # number of edges used for avg_edges
+        avg_alt_ids = 0
         obsolete_amount = 0
+        considered_amount = set()
+        bio,mol,cel = 0,0,0 # number of nodes per namespace, used for namespaces_percentage
+        avg_parents = 0
+        avg_children = 0
+        top_synonym_nodes = dict()
+        top_children_nodes = dict()
+        top_parents_nodes = dict()
+        top_alt_ids = dict()
+
+
         for n in nodes:
+            avg_synonyms += len(n.synonyms)
+            edge_n += len(self.get_Graph.get_children(n))
+            edge_n += len(self.get_Graph.get_parents(n))
+            avg_alt_ids += len(n.alt_ids)
+            avg_parents += len(self.get_Graph.get_parents(n,False))
+            avg_children += len(self.get_Graph.get_children(n,False))
+
             if n.is_obsolete:
                 obsolete_amount += 1
-        ret["obsolete_amount"] = obsolete_amount
-        
-
-        # number of nodes considered by other nodes (if a node is considered multiple times it counts only once)
-        considered_amount = set()
-        for n in nodes:
-            for m in n.consider:
-                considered_amount.add(m)
-        ret["considered_amount"] = len(considered_amount)
-
-
-        # tuple of percentages of distribution of the three namespaces
-        # the order is biological process, molecular function, cellular component
-        bio,mol,cel = 0,0,0
-        for n in nodes:
             if n.namespace == 'biological_process':
                 bio += 1
             elif n.namespace == 'molecular_function':
                 mol += 1
             elif n.namespace == 'cellular_component':
                 cel += 1
-        bio = (bio/n_nodes) * 100
-        mol = (mol/n_nodes) * 100
-        cel = (cel/n_nodes) * 100
-        ret["namespaces_percentage"] = (bio,mol,cel)
-
-        # average number of parents per node
-        avg_parents = sum(len(self.get_Graph.get_parents(n,False)) for n in nodes)
-        ret["avg_parents"] = avg_parents/n_nodes 
+                        
+            for m in n.consider:
+                considered_amount.add(m) 
 
 
-        # average number of children per node
-        avg_children = sum(len(self.get_Graph.get_children(n,False)) for n in nodes)
-        ret["avg_children"] = avg_children/n_nodes 
+        # sorted version of the list of nodes for the top elements of ret (top_synonym_nodes, top_children_nodes...)
+        # from each list the first 10 elements are taken and added to a dictionary with the id as key 
+        sorted_nodes_by_synonyms = sorted(nodes, key = lambda n: len(n.synonyms), reverse=True)
+        sorted_nodes_by_children = sorted(nodes, key = lambda n: len(self.get_Graph.get_children(n,False)), reverse=True)
+        sorted_nodes_by_parents = sorted(nodes, key = lambda n: len(self.get_Graph.get_parents(n,False)), reverse=True)
+        sortet_nodes_by_alt_ids = sorted(nodes, key = lambda n: len(n.alt_ids), reverse = True)
+
+
+        for i in range(0,10):
+            top_synonym_nodes[sorted_nodes_by_synonyms[i].go_id] = len(sorted_nodes_by_synonyms[i].synonyms)
+            top_children_nodes[sorted_nodes_by_children[i].go_id] = len(self.get_Graph.get_children(sorted_nodes_by_children[i],False))
+            top_parents_nodes[sorted_nodes_by_parents[i].go_id] = len(self.get_Graph.get_parents(sorted_nodes_by_parents[i],False))
+            top_alt_ids[sortet_nodes_by_alt_ids[i].go_id] = len(sortet_nodes_by_alt_ids[i].go_id)
         
 
-        # dict of the 10 nodes with the most synonyms [node id]: number of synonyms
-        top_synonym_nodes = dict()
-        sorted_nodes = sorted(nodes, key = lambda n: len(n.synonyms), reverse=True)
-        for i in range(0,10):
-            top_synonym_nodes[sorted_nodes[i].go_id] = len(sorted_nodes[i].synonyms)
+        # actual construction of the dictionary
+        ret["avg_synonyms"] = avg_synonyms/n_nodes
+        ret["avg_edges"] = edge_n/n_nodes
+        ret["avg_alt_ids"] = avg_alt_ids/n_nodes
+        ret["obsolete_amount"] = obsolete_amount
+        ret["considered_amount"] = len(considered_amount) # considered_amount is a set so we actually need it's len()
+        ret["namespaces_percentage"] = ((bio/n_nodes)*100,(mol/n_nodes)*100,(cel/n_nodes)*100) # the three values are given as percentages
+        ret["avg_parents"] = avg_parents/n_nodes
+        ret["avg_children"] = avg_children/n_nodes
         ret["top_synonym_nodes"] = top_synonym_nodes
-
-
-        # dict of the 10 nodes with most children organized the same way as top_synony_nodes
-        top_children_nodes = dict()
-        sorted_nodes = sorted(nodes, key = lambda n: len(self.get_Graph.get_children(n,False)), reverse=True)
-        for i in range(0,10):
-            top_children_nodes[sorted_nodes[i].go_id] = len(self.get_Graph.get_children(sorted_nodes[i],False))
         ret["top_children_nodes"] = top_children_nodes
-
-        # dict of the 10 nodes with most parents
-        top_parents_nodes = dict()
-        sorted_nodes = sorted(nodes, key = lambda n: len(self.get_Graph.get_parents(n,False)), reverse=True)
-        for i in range(0,10):
-            top_parents_nodes[sorted_nodes[i].go_id] = len(self.get_Graph.get_parents(sorted_nodes[i],False))
         ret["top_parents_nodes"] = top_parents_nodes
+        ret["top_alt_ids"] = top_alt_ids
 
-        
-        '''
-          do the same thing for: 
-          - top alt ids
-          - top edges
-        '''
         return ret
+    
