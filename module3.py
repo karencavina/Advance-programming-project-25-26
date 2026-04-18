@@ -123,7 +123,8 @@ class Analysis():
                     eq += 2
                 if w == n2.go_id:
                     eq += 4 # we count as "more impactfull" if their own ids are in the list
-            return eq(len(p1) + len(p2))
+            den= len(p1) + len(p2)
+            return eq/den if den > 0 else 0
 
         if n1.go_id == n2.go_id or n1.replaced_by == n2.go_id or n2.replaced_by == n1.go_id: # in theese three cases the nodes are either the same or one replaces the other se we just return 1
             return 1
