@@ -133,7 +133,7 @@ class Analysis():
                 overlap += 1
 
             overlap += propertyCompareStr(n1.name, n2.name)
-            overlap += propertyCompareStr(n1.defi,n2.defi)
+            overlap += propertyCompareStr(n1.definition,n2.definition)
             overlap += propertyCompareList(n1.subsets,n2.subsets)
             overlap += propertyCompareList(n1.alt_ids,n2.alt_ids)
             overlap += propertyCompareId(n1.synonyms,n2.synonyms)
