@@ -61,6 +61,9 @@ class GONode(Node):
     def namespace(self):
         return self._namespace
     @property
+    def defi(self):
+        return self._defi
+    @property
     def is_obsolete(self):
         return self._is_obsolete
     @property
