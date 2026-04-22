@@ -1,7 +1,49 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="card">
-    <h2>Search</h2>
-    <p>This page will allow users to search the Gene Ontology data store for specific terms and their relationships.</p>
-</div>
+  <section class="card">
+    <h2>Search GO Terms</h2>
+    <p>Search by GO ID or by term name.</p>
+
+    <form method="get" action="{{ url_for('search') }}">
+      <label for="q">Search query</label>
+      <input
+        type="text"
+        id="q"
+        name="q"
+        placeholder="Example: GO:0008150 or nucleus"
+        value="{{ query or '' }}"
+      >
+      <button type="submit">Search</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h3>Results</h3>
+
+    {% if not state.loaded %}
+      <p>Please upload the OBO and GAF files first.</p>
+
+    {% elif query and results %}
+      <p><strong>{{ results|length }}</strong> result(s) found for "<strong>{{ query }}</strong>".</p>
+
+      <ul>
+        {% for node in results %}
+          <li style="margin-bottom: 10px;">
+            <a href="{{ url_for('term_detail', go_id=node.go_id) }}">
+              <strong>{{ node.go_id }}</strong> - {{ node.name }}
+            </a>
+            <br>
+            <span class="small-text">Namespace: {{ node.namespace }}</span>
+          </li>
+        {% endfor %}
+      </ul>
+
+    {% elif query %}
+      <p>No GO terms found for "<strong>{{ query }}</strong>".</p>
+
+    {% else %}
+      <p>Enter a query above to search the ontology.</p>
+    {% endif %}
+  </section>
 {% endblock %}
