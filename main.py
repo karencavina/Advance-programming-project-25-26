@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import RequestEntityTooLarge
 import os
 import module1
-#import module3
+import module3
 from graph import *
 
 STATE = {
@@ -11,7 +11,8 @@ STATE = {
     "obo": None,
     "gaf": None,
     "graph": None,
-    'data': None
+    'data': None,
+    'analysis': None
 }
 
 # flask set up 
@@ -33,6 +34,7 @@ def allowed_file(filename):
 # Ensure upload folder exists
 os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
 
+
 # handle file size limit error
 @app.errorhandler(RequestEntityTooLarge)
 def handle_file_size_error(e):
@@ -47,15 +49,6 @@ def home():
     return render_template('home.html', state=STATE)
 
 
-@app.route('/visualize')
-def visualize():
-    # Handle visualization logic here
-    return render_template('visualize.html',state=STATE)
-
-@app.route('/search')
-def search():    
-    # Handle search logic here
-    return render_template('search.html', state=STATE)
 
 
 @app.route('/upload', methods=['GET','POST'])
@@ -84,41 +77,109 @@ def upload():
     try:
         data = module1.load_all(obo_path, gaf_path)
         graph = create_graph(data)
+        analysis = module3.Analysis(graph)
 
         STATE["data"] = data
         STATE["graph"] = graph
         STATE["obo"] = obo_path
         STATE["gaf"] = gaf_path
         STATE["loaded"] = True
+        STATE["analysis"] = analysis
 
         flash("Files uploaded successfully.", "success")
         return redirect(url_for("home"))
+    
     except Exception as e:
         app.logger.exception("Error while processing uploaded files")
         flash(f"An error occurred while processing the files: {str(e)}", "error")
         return redirect(url_for("upload"))
     
 
-'''
-@app.route('/search')
-def search():
-    query = request.args.get('query', '')
-    # Here you would add logic to search the ontology data store
-    results = []  # Placeholder for search results
-    return render_template('search.html', query=query, results=results)
 
-@app.route('/visualize')
-def visualize():
-    return render_template('visualize.html')
-'''
+@app.route('/search')
+def search():    
+    if not STATE["loaded"]:
+        flash("Please upload files before searching.", "error")
+        return redirect(url_for("upload"))
+    
+    query = request.args.get("q", "").strip()
+    results = []
+    if query:
+        for node in STATE["graph"].get_GONodes():
+            if query.lower() in node.go_id.lower() or query.lower() in node.name.lower():
+                results.append(node)
+    return render_template('search.html', state=STATE, query=query, results=results,)
+
+@app.route("/term/<go_id>")
+def term_detail(go_id):
+    if not STATE["loaded"]:
+        flash("Please upload files before viewing term details.", "error")
+        return redirect(url_for("upload"))
+    
+    try:
+        node = STATE["graph"].get_node(go_id)
+    
+    except KeyError:
+        flash(f"Term with ID {go_id} not found.", "error")
+        return redirect(url_for("search"))
+    
+    parents= STATE["graph"].get_parents(node, edge=False) or []
+    children= STATE["graph"].get_children(node, edge=False) or []
+    neighbours = STATE["analysis"].get_Neighbours(node) or []
+
+    return render_template(
+        'term_detail.html',
+        state=STATE, 
+        node=node, 
+        parents=parents, 
+        children=children,
+        neighbours=neighbours
+    )
+@app.route("/stats")
+def stats():
+    if not STATE["loaded"]:
+        flash("Please upload files first.", "error")
+        return redirect(url_for("upload"))
+
+    stats_data = STATE["analysis"].get_Statistics()
+    return render_template("stats.html", state=STATE, stats=stats_data)
+
+@app.route('/similarity', methods=['GET','POST'])
+def similarity():
+    if not STATE["loaded"]:
+        flash("Please upload files before calculating similarity.", "error")
+        return redirect(url_for("upload"))
+
+    similarity_score = None
+    node1 = None
+    node2 = None
+
+    if request.method == "POST":
+        go_id1 = request.form.get("go_id1", "").strip()
+        go_id2 = request.form.get("go_id2", "").strip()
+
+        try:
+            node1 = STATE["graph"].get_node(go_id1)
+            node2 = STATE["graph"].get_node(go_id2)
+            similarity_score = STATE["analysis"].get_Similarity(node1, node2)
+
+        except KeyError as e:
+            flash(str(e), "error")
+            return redirect(url_for("similarity"))
+        
+    return render_template(
+        'similarity.html',
+        state=STATE,
+        similarity=similarity_score,
+        node1=node1,
+        node2=node2
+    )
+
 
 if __name__== '__main__': 
     app.run(debug=True)
 
 
-
-
     
-
 
 
