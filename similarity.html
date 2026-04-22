@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>GO Term Similarity</h2>
+    <p>Compare two GO terms using your analysis module.</p>
+
+    <form method="post" action="{{ url_for('similarity') }}">
+      <label for="go_id1">First GO ID</label>
+      <input
+        type="text"
+        id="go_id1"
+        name="go_id1"
+        placeholder="Example: GO:0008150"
+        required
+      >
+
+      <label for="go_id2">Second GO ID</label>
+      <input
+        type="text"
+        id="go_id2"
+        name="go_id2"
+        placeholder="Example: GO:0003674"
+        required
+      >
+
+      <button type="submit">Compute Similarity</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h3>Result</h3>
+
+    {% if similarity is not none %}
+      <p><strong>Term 1:</strong> {{ node1.go_id }} - {{ node1.name }}</p>
+      <p><strong>Term 2:</strong> {{ node2.go_id }} - {{ node2.name }}</p>
+      <p><strong>Similarity score:</strong> {{ similarity }}</p>
+    {% else %}
+      <p>No similarity computed yet.</p>
+    {% endif %}
+  </section>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>GO Term Details</h2>
+
+    {% if node %}
+      <p><strong>ID:</strong> {{ node.go_id }}</p>
+      <p><strong>Name:</strong> {{ node.name }}</p>
+      <p><strong>Namespace:</strong> {{ node.namespace }}</p>
+      <p><strong>Definition:</strong> {{ node.definition }}</p>
+      <p><strong>Obsolete:</strong> {{ "Yes" if node.is_obsolete else "No" }}</p>
+
+      {% if node.alt_ids %}
+        <p><strong>Alternative IDs:</strong></p>
+        <ul>
+          {% for alt in node.alt_ids %}
+            <li>{{ alt }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if node.synonyms %}
+        <p><strong>Synonyms:</strong></p>
+        <ul>
+          {% for syn in node.synonyms %}
+            <li>{{ syn }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if node.subsets %}
+        <p><strong>Subsets:</strong></p>
+        <ul>
+          {% for subset in node.subsets %}
+            <li>{{ subset }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if node.consider %}
+        <p><strong>Consider:</strong></p>
+        <ul>
+          {% for item in node.consider %}
+            <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if node.replaced_by %}
+        <p><strong>Replaced by:</strong> {{ node.replaced_by }}</p>
+      {% endif %}
+    {% else %}
+      <p>Term not found.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h3>Parent Terms</h3>
+    {% if parents %}
+      <ul>
+        {% for parent in parents %}
+          <li>
+            <a href="{{ url_for('term_detail', go_id=parent.go_id) }}">
+              {{ parent.go_id }} - {{ parent.name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No parent terms found.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h3>Child Terms</h3>
+    {% if children %}
+      <ul>
+        {% for child in children %}
+          <li>
+            <a href="{{ url_for('term_detail', go_id=child.go_id) }}">
+              {{ child.go_id }} - {{ child.name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No child terms found.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h3>Neighbours</h3>
+    {% if neighbours %}
+      <ul>
+        {% for neighbour in neighbours %}
+          <li>
+            <a href="{{ url_for('term_detail', go_id=neighbour.go_id) }}">
+              {{ neighbour.go_id }} - {{ neighbour.name }}
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No neighbouring terms found.</p>
+    {% endif %}
+  </section>
+{% endblock %}

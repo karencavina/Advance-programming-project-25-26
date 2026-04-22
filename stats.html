@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <section class="card">
+    <h2>Ontology Statistics</h2>
+
+    {% if not state.loaded %}
+      <p>Please upload the datasets first.</p>
+
+    {% elif stats %}
+      <p><strong>Average synonyms per node:</strong> {{ stats.avg_synonyms }}</p>
+      <p><strong>Average edges per node:</strong> {{ stats.avg_edges }}</p>
+      <p><strong>Average alternative IDs per node:</strong> {{ stats.avg_alt_ids }}</p>
+      <p><strong>Average parents per node:</strong> {{ stats.avg_parents }}</p>
+      <p><strong>Average children per node:</strong> {{ stats.avg_children }}</p>
+      <p><strong>Obsolete terms:</strong> {{ stats.obsolete_amount }}</p>
+      <p><strong>Unique considered terms:</strong> {{ stats.considered_amount }}</p>
+
+      <h3>Namespace Distribution</h3>
+      <ul>
+        <li>Biological Process: {{ stats.namespaces_percentage[0] }}%</li>
+        <li>Molecular Function: {{ stats.namespaces_percentage[1] }}%</li>
+        <li>Cellular Component: {{ stats.namespaces_percentage[2] }}%</li>
+      </ul>
+
+      <h3>Top Nodes by Synonyms</h3>
+      <ul>
+        {% for go_id, count in stats.top_synonym_nodes.items() %}
+          <li>{{ go_id }} : {{ count }}</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Top Nodes by Children</h3>
+      <ul>
+        {% for go_id, count in stats.top_children_nodes.items() %}
+          <li>{{ go_id }} : {{ count }}</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Top Nodes by Parents</h3>
+      <ul>
+        {% for go_id, count in stats.top_parents_nodes.items() %}
+          <li>{{ go_id }} : {{ count }}</li>
+        {% endfor %}
+      </ul>
+
+      <h3>Top Nodes by Alternative IDs</h3>
+      <ul>
+        {% for go_id, count in stats.top_alt_ids.items() %}
+          <li>{{ go_id }} : {{ count }}</li>
+        {% endfor %}
+      </ul>
+
+    {% else %}
+      <p>No statistics available.</p>
+    {% endif %}
+  </section>
+{% endblock %}
