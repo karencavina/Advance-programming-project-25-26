@@ -56,9 +56,7 @@ class Analysis():
         for e in self.__graph.get_children(n,False):
             out.append(e)
         return out
-
-
-
+        
     def get_Similarity(self, n1: GONode, n2:GONode) -> float:
         '''
         returns a percentage of the similarity of two GOnodes using the Dice-Sørensen coefficient
@@ -75,9 +73,8 @@ class Analysis():
             given the property of the two nodes compares them by increasing eq by 1 for every word contained in both
             and returns eq over the length of the longest in term of words of the two properties.
             '''
-            if p1 == None or p2 == None:
-                n1N2Prop -= 2
-                return 0
+            if p1 == None or p2 == None or len(p1) == 0 or len(p2) == 0:
+                return (0, -2)
 
             eq = 0
             p1 = p1.split(" ")
@@ -85,62 +82,66 @@ class Analysis():
             p1 = [w for w in p1 if len(w) > 3]
             p2 = [w for w in p2 if len(w) > 3]
 
-            if len(p1) > len(p2):
-                return eq/len(p1)
-            else:
-                return eq/len(p2)
+            for word in p1:
+                if word in p2:
+                    eq+=2
+            
+            return(2*eq/(len(p1)+len(p2)), 0)
+
 
         def propertyCompareList(p1:list, p2:list):
             '''
             same propertyCompareStr but works for properties that are stored as lists
             '''
-            if p1 == None or p2 == None:
-                n1N2Prop -= 2
-                return 0
-
-            eq = 0
-            for w in p1:
-                if w in p2:
-                    eq += 1
-            if len(p1) > len(p2):
-                return eq/len(p1)
-            else:
-                return eq/len(p2)
-
-        def propertyCompareId(p1:list,p2:list):
-            ''' 
-            some properties are saved as lists of ids in particular synonyms and consider 
-            this function compares them taking into account the possibility of one node's Id being present in the other
-            better said, there is difference between having a common synonym and one being the synonym of the other
-            '''
-            if p1 == None or p2 == None:
-                n1N2Prop -= 2
-                return 0
+            if p1 == None or p2 == None or len(p1)==0 or len(p2)==0:
+                return (0, -2)
 
             eq = 0
             for w in p1:
                 if w in p2:
                     eq += 2
-                if w == n2.go_id:
-                    eq += 4 # we count as "more impactfull" if their own ids are in the list
-            den= len(p1) + len(p2)
-            return eq/den if den > 0 else 0
 
-        if n1.go_id == n2.go_id or n1.replaced_by == n2.go_id or n2.replaced_by == n1.go_id: # in theese three cases the nodes are either the same or one replaces the other se we just return 1
+            return(2*eq/(len(p1)+len(p2)), 0)
+            
+
+        def propertyCompareId(p1:list,p2:list, n1: GONode, n2: GONode):
+            ''' 
+            some properties are saved as lists of ids in particular synonyms and consider 
+            this function compares them taking into account the possibility of one node's Id being present in the other
+            better said, there is difference between having a common synonym and one being the synonym of the other
+            '''
+            if p1 == None or p2 == None or len(p1)==0 or len(p2)==0:
+                return (0, -2)
+
+            eq = 0
+            if n1.go_id in p2:
+                eq+=4
+            if n2.go_id in p1:
+                eq+=4
+            for w in p1:
+                if w in p2:
+                    eq += 2
+            return (2*eq/(len(p1) + len(p2)), 0)
+
+        if n1.go_id == n2.go_id or n1.replaced_by == n2.go_id or n2.replaced_by == n1.go_id: # in these three cases the nodes are either the same or one replaces the other se we just return 1
             return 1
         else:
             if n1.namespace == n2.namespace: # there are only three possible namespaces so it's enough to check if they are the same or not
-                overlap += 1
+                overlap += 2
 
-            overlap += propertyCompareStr(n1.name, n2.name)
-            overlap += propertyCompareStr(n1.definition,n2.definition)
-            overlap += propertyCompareList(n1.subsets,n2.subsets)
-            overlap += propertyCompareList(n1.alt_ids,n2.alt_ids)
-            overlap += propertyCompareId(n1.synonyms,n2.synonyms)
-            overlap += propertyCompareId(n1.consider,n2.consider)
+            a1, b1 = propertyCompareStr(n1.name, n2.name)
+            a2, b2 = propertyCompareStr(n1.defi,n2.defi)
+            a3, b3 = propertyCompareList(n1.subsets,n2.subsets)
+            a4, b4 = propertyCompareList(n1.alt_ids,n2.alt_ids)
+            a5, b5 = propertyCompareId(n1.synonyms,n2.synonyms, n1, n2)
+            a6, b6 = propertyCompareId(n1.consider,n2.consider, n1, n2)
+            overlap += (a1+a2+a3+a4+a5+a6)
+            n1N2Prop += (b1+b2+b3+b4+b5+b6)
 
             return (overlap/n1N2Prop)
-        
+
+
+       
     def get_Statistics(self) -> dict:
         '''
         returns a dictionary with various statistics about the graph:
