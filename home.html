@@ -3,14 +3,17 @@
   <div class="card">
     <h2>Home</h2>
     <p>This is a student programming project for analyzing Gene Ontology data.<br>
-        This app allows users to upload Gene Ontology and Gene Annotation files, parse them, and perform basic searches
-         and analyses on the data and visualize the results.
+       The app lets users upload Gene Ontology and Gene Annotation files, parse them,
+      search GO terms, inspect ontology relationships, and run analytical comparisons.
+    </p> 
+        
+        
 </p>
 
     <a href="{{ url_for('upload') }}"><button>Go to Upload</button></a>
     <a href="{{ url_for('search') }}"><button>Go to Search</button></a>
-    
-    <a href="{{ url_for('visualize') }}"><button>Go to Visualize</button></a>
+    <a href="{{ url_for('stats') }}"><button>Go to Statistics</button></a>
+    <a href="{{ url_for('similarity') }}"><button>Go to Similarity</button></a>
 
   </div>
 {% endblock %}
