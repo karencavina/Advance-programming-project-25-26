@@ -135,14 +135,7 @@ def term_detail(go_id):
         children=children,
         neighbours=neighbours
     )
-@app.route("/stats")
-def stats():
-    if not STATE["loaded"]:
-        flash("Please upload files first.", "error")
-        return redirect(url_for("upload"))
 
-    #stats_data = STATE["analysis"].get_Statistics()
-    return render_template("stats.html", state=STATE, stats=module3.statistics)
 
 @app.route('/similarity', methods=['GET','POST'])
 def similarity():
@@ -175,6 +168,15 @@ def similarity():
         node2=node2
     )
 
+@app.route("/stats")
+def stats():
+    if not STATE["loaded"]:
+        flash("Please upload files first.", "error")
+        return redirect(url_for("upload"))
+
+    #stats_data = STATE["analysis"].get_Statistics()
+    #return render_template("stats.html", state=STATE, stats=stats_data)
+    return render_template("stats.html", state=STATE, stats=module3.statistics)
 
 if __name__== '__main__': 
     app.run(debug=True)
@@ -183,4 +185,4 @@ if __name__== '__main__':
     
 
 
-
+   
