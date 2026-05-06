@@ -141,8 +141,8 @@ def stats():
         flash("Please upload files first.", "error")
         return redirect(url_for("upload"))
 
-    stats_data = STATE["analysis"].get_Statistics()
-    return render_template("stats.html", state=STATE, stats=stats_data)
+    #stats_data = STATE["analysis"].get_Statistics()
+    return render_template("stats.html", state=STATE, stats=module3.statistics)
 
 @app.route('/similarity', methods=['GET','POST'])
 def similarity():
@@ -181,5 +181,6 @@ if __name__== '__main__':
 
 
     
+
 
 
