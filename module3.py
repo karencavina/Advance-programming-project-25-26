@@ -230,7 +230,32 @@ class Analysis():
         ret["top_alt_ids"] = top_alt_ids
 
         return ret
-    
+
+    def get_gene_annotations(self, db_id: str):
+        ''' 
+        returns the associated annotations of a term given it's DB Object id 
+        return None if the gene ha no annotations
+        '''
+
+        out = self.get_Graph.annotations[self.get_Graph.annotations["db_object_id"] == db_id]
+
+        if len(out) == 0:
+            return None
+        else :
+            return(out)
+
+    def get_goterm_annotations(self, Go_Id : str):
+        ''' 
+        returns the associated annotations of a term given it's GO id, the term's id must be written in Full eg GO:0000001
+        return None if the gene ha no annotations
+        '''
+        out = self.get_Graph.annotations[self.get_Graph.annotations["go_id"] == Go_Id]
+        if len(out) == 0:
+            return None
+        else :
+            return(out)
+
+
 statistics = {'avg_synonyms': 2.683687442941323, 
  'avg_edges': 3.102456635405428, 
  'avg_alt_ids': 0.0756494314880903, 
