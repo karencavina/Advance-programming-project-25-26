@@ -168,6 +168,9 @@ class OntologyGraph(Graph):
     def get_node(self, go_id: str) -> GONode:
         return self.__nodes[go_id]
     
+    @property
+    def annotations(self):
+        return self._annotations
 
     
 def create_graph(dataframes: DataBundle) -> OntologyGraph:        # the function to call to create the graph
