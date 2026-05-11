@@ -21,7 +21,7 @@ app.secret_key = "supersecretkey"  # Needed for flash messages
 
 # paths / folders 
 app.config['UPLOAD_FOLDER'] = 'uploads/'
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  #MB limit
+app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200 MB limit
 app.config['ALLOWED_EXTENSIONS'] = {'.obo','.gaf','.gaf.gz'}
 
 def allowed_file(filename):
@@ -47,8 +47,6 @@ def handle_file_size_error(e):
 @app.route('/')
 def home():
     return render_template('home.html', state=STATE)
-
-
 
 
 @app.route('/upload', methods=['GET','POST'])
@@ -110,6 +108,8 @@ def search():
                 results.append(node)
     return render_template('search.html', state=STATE, query=query, results=results,)
 
+
+
 @app.route("/term/<go_id>")
 def term_detail(go_id):
     if not STATE["loaded"]:
@@ -126,6 +126,8 @@ def term_detail(go_id):
     parents= STATE["graph"].get_parents(node, edge=False) or []
     children= STATE["graph"].get_children(node, edge=False) or []
     neighbours = STATE["analysis"].get_Neighbours(node) or []
+    annotations_df = STATE["analysis"].get_goterm_annotations(go_id)
+    annotations =[] if annotations_df is None else annotations_df.to_dict("records")
 
     return render_template(
         'term_detail.html',
@@ -133,7 +135,8 @@ def term_detail(go_id):
         node=node, 
         parents=parents, 
         children=children,
-        neighbours=neighbours
+        neighbours=neighbours,
+        annotations=annotations
     )
 
 
@@ -168,6 +171,8 @@ def similarity():
         node2=node2
     )
 
+
+
 @app.route("/stats")
 def stats():
     if not STATE["loaded"]:
@@ -181,8 +186,3 @@ def stats():
 if __name__== '__main__': 
     app.run(debug=True)
 
-
-    
-
-
-   
