@@ -8,7 +8,7 @@
       <p><strong>ID:</strong> {{ node.go_id }}</p>
       <p><strong>Name:</strong> {{ node.name }}</p>
       <p><strong>Namespace:</strong> {{ node.namespace }}</p>
-      <p><strong>Definition:</strong> {{ node.definition }}</p>
+      <p><strong>Definition:</strong> {{ node.defi}}</p>
       <p><strong>Obsolete:</strong> {{ "Yes" if node.is_obsolete else "No" }}</p>
 
       {% if node.alt_ids %}
@@ -103,6 +103,29 @@
       </ul>
     {% else %}
       <p>No neighbouring terms found.</p>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h3>Gene Annotations</h3>
+    {% if annotations %}
+      <table>
+        <tr>
+          <th>Evidence Code</th>
+          <th>Aspect</th>
+          <th>Assigned By</th>
+        </tr>
+
+        {% for ann in annotations %}
+            <tr>
+              <td>{{ ann.evidence_code }}</td>
+              <td>{{ ann.aspect }}</td>
+              <td>{{ ann.assigned_by }}</td>
+            </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>No gene annotations found for this term.</p>
     {% endif %}
   </section>
 {% endblock %}
