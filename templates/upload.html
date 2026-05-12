@@ -6,15 +6,16 @@
 
     <form action="/upload" method="post" enctype="multipart/form-data">
       <label for="obo">Gene Ontology file (go-basic.obo)</label>
-      <input type="file" id="obo" name="obo_file" required>
+      <input type="file" id="obo" name="obo_file"  accept=".obo" required>
 
       <label for="gaf">Human Gene Annotation file (goa_human.gaf.gz)</label>
-      <input type="file" id="gaf" name="gaf_file" required>
+      <input type="file" id="gaf" name="gaf_file"  accept=".gaf,.gz,.gaf.gz" required>
 
       <button type="submit">Upload & Parse</button>
     </form>
-    
+
     <a href="{{ url_for('home') }}"><button>Go to Home</button></a>
+    
   </section>
 {% endblock %}
 
