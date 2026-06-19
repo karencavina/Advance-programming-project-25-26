@@ -111,6 +111,11 @@
     {% if annotations %}
       <table>
         <tr>
+          <th>Database</th>
+          <th>DB obj ID</th>
+          <th>Qualifier</th>
+          <th>GO ID</th>
+          <th>DB obj name</th>
           <th>Evidence Code</th>
           <th>Aspect</th>
           <th>Assigned By</th>
@@ -118,6 +123,11 @@
 
         {% for ann in annotations %}
             <tr>
+              <td>{{ ann.db }}</td>
+	            <td>{{ ann.db_object_id }}</td>
+	            <td>{{ ann.qualifier }}</td>
+	            <td>{{ ann.go_id }}</td>
+	            <td>{{ ann.db_object_name }}</td>
               <td>{{ ann.evidence_code }}</td>
               <td>{{ ann.aspect }}</td>
               <td>{{ ann.assigned_by }}</td>
