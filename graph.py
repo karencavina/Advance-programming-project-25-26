@@ -170,7 +170,7 @@ class OntologyGraph(Graph):
     
     @property
     def annotations(self):
-        return self._annotations
+        return self.__annotations
 
     
 def create_graph(dataframes: DataBundle) -> OntologyGraph:        # the function to call to create the graph
