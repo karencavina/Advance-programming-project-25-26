@@ -158,6 +158,7 @@ def similarity():
             node1 = STATE["graph"].get_node(go_id1)
             node2 = STATE["graph"].get_node(go_id2)
             similarity_score = STATE["analysis"].get_Similarity(node1, node2)
+            path = STATE["analysis"].path_Finder(node1, node2)
 
         except KeyError as e:
             flash(str(e), "error")
