@@ -21,7 +21,7 @@ app.secret_key = "supersecretkey"  # Needed for flash messages
 
 # paths / folders 
 app.config['UPLOAD_FOLDER'] = 'uploads/'
-app.config['MAX_CONTENT_LENGTH'] = 200 * 1024 * 1024  # 200 MB limit
+app.config['MAX_CONTENT_LENGTH'] = 400 * 1024 * 1024  # 400 MB limit
 app.config['ALLOWED_EXTENSIONS'] = {'.obo','.gaf','.gaf.gz'}
 
 def allowed_file(filename):
