@@ -149,6 +149,7 @@ def similarity():
     similarity_score = None
     node1 = None
     node2 = None
+    path = None 
 
     if request.method == "POST":
         go_id1 = request.form.get("go_id1", "").strip()
@@ -169,7 +170,8 @@ def similarity():
         state=STATE,
         similarity=similarity_score,
         node1=node1,
-        node2=node2
+        node2=node2,
+        path=path
     )
 
 
