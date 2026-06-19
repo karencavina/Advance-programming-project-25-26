@@ -38,5 +38,21 @@
     {% else %}
       <p>No similarity computed yet.</p>
     {% endif %}
+    {% if path %}
+  <h3>Path Between Terms</h3>
+  <ul>
+    {% for node in path %}
+      <li>
+        <a href="{{ url_for('term_detail', go_id=node.go_id) }}">
+          {{ node.go_id }} - {{ node.name }}
+        </a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  {% if similarity is not none %}
+    <p>No path found between these terms.</p>
+  {% endif %}
+{% endif %}
   </section>
 {% endblock %}
